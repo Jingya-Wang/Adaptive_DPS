@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[53]:
 
 
 '''
@@ -32,7 +31,6 @@ water_level = pd.read_csv(dd, header = None)
 water_level = water_level.to_numpy()
 
 
-# In[54]:
 
 
 ####################################
@@ -74,7 +72,6 @@ inv_n_sow = 1/n_sow
 rel_threshold = 0.8
 
 
-# In[55]:
 
 
 # ####################################
@@ -87,7 +84,7 @@ rel_threshold = 0.8
 # water_level = np.zeros(t_years)
 
 
-# In[ ]:
+
 
 
 # # read in the coefficient file
@@ -126,7 +123,7 @@ rel_threshold = 0.8
 #     return x_t
 
 
-# In[76]:
+
 
 
 # ####################################
@@ -166,7 +163,6 @@ rel_threshold = 0.8
 # new_water_level = water_level[n:] # first 30-year data is erased
 
 
-# In[ ]:
 
 
 ####################################
@@ -257,8 +253,6 @@ def calc_slr(sow_ind, coefs):
     return water_level
 
 
-# In[92]:
-
 
 ####################################
 ## get dike heightening for time t
@@ -333,7 +327,6 @@ def calc_heightening(t, prev_h, water_level, n, year_offset, x, r, w, h_0):
     return FH_t, BH_t, u_t
 
 
-# In[60]:
 
 
 ####################################
@@ -367,8 +360,6 @@ def calc_inv_loss(t, prev_h, u_t, water_level, year_offset, V_0, gamma, zeta, h_
     return inv_t, s_t, current_h, flood_rel
 
 
-# In[61]:
-
 
 ####################################
 ## calculate discounted loss and investment
@@ -385,8 +376,6 @@ def discounted(inv, s, n_years, delta, delta_1):
         
     return total_inv, total_s
 
-
-# In[67]:
 
 
 ####################################
@@ -413,7 +402,6 @@ def calc_model(n_years, h_0, water_level, n, year_offset, x, r, w, V_0,         
     return total_inv, total_s, flood_rel
 
 
-# In[ ]
 
 
 ####################################
@@ -478,9 +466,6 @@ def slr_problem(*rbf_vars):
     
 
 
-# In[ ]:
-
-
 ### run with borg
 nvars = 12
 nobjs = 2
@@ -507,7 +492,6 @@ Configuration.stopMPI()
 objectives_total = np.empty(shape=[0,nobjs])
 strategies_total = np.empty(shape=[0,nvars])
 
-#i = 0
 if result:
     for solution in result:
         objectives = solution.getObjectives()
