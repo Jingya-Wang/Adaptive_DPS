@@ -34,7 +34,7 @@ water_level = water_level.to_numpy()
 
 
 ####################################
-##        assign values       ## 
+##        assign values       ##
 ####################################
 n = 30
 year_offset = 30
@@ -52,8 +52,8 @@ n_vars = n_rbf * 3
 
 ## parameters
 V_0 = 22656.5 # loss due to flood prior to t=0
-alpha = 0.0574 
-p_0 = 0.00110  # 
+alpha = 0.0574
+p_0 = 0.00110  #
 h_0 = (1/alpha)*(np.log(1/p_0)) # initial height of dike prior to t=0
 gamma = 0.02  # parameter for calculating damage
 zeta = 0.002032  # parameter for calculating damage
@@ -75,7 +75,7 @@ rel_threshold = 0.8
 
 
 # ####################################
-# ##        initialize       ## 
+# ##        initialize       ##
 # ####################################
 # sl = np.zeros(t_years)
 # sl_centered = np.zeros(t_years)
@@ -127,7 +127,7 @@ rel_threshold = 0.8
 
 
 # ####################################
-# ##        Calculate the slr       ## 
+# ##        Calculate the slr       ##
 # ####################################
 
 # for i in range(0,t_years):
@@ -151,7 +151,7 @@ rel_threshold = 0.8
     
 #     water_level_orig[i] = sl[i] + surge[i]
     
-# # uncentered water level    
+# # uncentered water level
 # new_water_level_orig = water_level_orig[n:]
     
 # # Center the SLR on the year 2000
@@ -166,7 +166,7 @@ rel_threshold = 0.8
 
 
 ####################################
-##        Calculate the slr       ## 
+##        Calculate the slr       ##
 ####################################
 ## will generate this before running this problem
 
@@ -229,7 +229,7 @@ def calc_slr(sow_ind, coefs):
         #sl[i] = slr(slr_a,slr_b,slr_c,t_star,c_star,i)
         sl[i] = slr_a + slr_b * calc_year + sign_year * slr_c * (calc_year*calc_year)
         if calc_year >= t_star:
-            sl[i] = sl[i] + c_star * (calc_year - t_star)    
+            sl[i] = sl[i] + c_star * (calc_year - t_star)
 
         # generate storm surge
         np.random.seed(seed)
@@ -238,7 +238,7 @@ def calc_slr(sow_ind, coefs):
 
         #water_level_orig[i] = sl[i] + surge[i]
 
-        # uncentered water level    
+        # uncentered water level
         #new_water_level_orig = water_level_orig[n:]
 
     # Center the SLR on the year 2000
@@ -271,7 +271,7 @@ def calc_heightening(t, prev_h, water_level, n, year_offset, x, r, w, h_0):
     ####################################
     ## fit the simple linear regression based on
     ## past n-year water level data. The coefficients
-    ## are used as state variables to describe states## 
+    ## are used as state variables to describe states##
     ####################################
     
     sx = 0
@@ -299,8 +299,8 @@ def calc_heightening(t, prev_h, water_level, n, year_offset, x, r, w, h_0):
     #mean_slr_rate, srss = state_variables(obs,n)
 
     ####################################
-    ## calculate the freeboard height and 
-    ## buffer height for time t with given DPS decision variables## 
+    ## calculate the freeboard height and
+    ## buffer height for time t with given DPS decision variables##
     ####################################
     FH_t = 0
     BH_t = 0
@@ -316,7 +316,7 @@ def calc_heightening(t, prev_h, water_level, n, year_offset, x, r, w, h_0):
         BH_t = 0
         
     ####################################
-    ## calculate dike heightenings## 
+    ## calculate dike heightenings##
     ####################################
     test_height = prev_h - BH_t
     u_t = 0
@@ -330,7 +330,7 @@ def calc_heightening(t, prev_h, water_level, n, year_offset, x, r, w, h_0):
 
 
 ####################################
-## calculate expected loss and investment 
+## calculate expected loss and investment
 ## at time t
 ####################################
 def calc_inv_loss(t, prev_h, u_t, water_level, year_offset, V_0, gamma, zeta, h_0, kappa, upsilon, lam):
@@ -339,7 +339,7 @@ def calc_inv_loss(t, prev_h, u_t, water_level, year_offset, V_0, gamma, zeta, h_
     
 #     if t > 0:
 #         prev_h = prev_h
-    flood_rel = 0    
+    flood_rel = 0
     current_h = prev_h + u_t
 
     # expected loss
@@ -443,10 +443,14 @@ def slr_problem(*rbf_vars):
 
     # assign objectives weights
     
-    sum_inv = sum(total_inv)
-    sum_s = sum(total_s)
-    weighted_inv = sum_inv * inv_n_sow
-    weighted_s = sum_s * inv_n_sow
+    sum_inv_1 = sum(total_inv[0:5000])
+    sum_inv_2 = sum(total_inv[5000:10000])
+
+    sum_s_1 = sum(total_s[0:5000])
+    sum_s_2 = sum(total_s[5000:10000])
+
+    weighted_inv = (sum_inv_1 * 0.3 + sum_inv_2 * 0.7) * inv_n_sow
+    weighted_s = (sum_s_1 * 0.3 + sum_s_2 * 0.7) * inv_n_sow
 
     objs[0] = weighted_inv
     objs[1] = weighted_s
@@ -502,8 +506,8 @@ if result:
         strategies_total = np.append(strategies_total,strategies,axis=0)
 
 if result:
-    np.savetxt("objectives_c1.csv", objectives_total, delimiter=",")
-    np.savetxt("strategies_c1.csv", strategies_total, delimiter=",")
+    np.savetxt("objectives_c2.csv", objectives_total, delimiter=",")
+    np.savetxt("strategies_c2.csv", strategies_total, delimiter=",")
 
 print(objectives_total)
 print(strategies_total)
@@ -511,7 +515,4 @@ print(strategies_total)
 stop = timeit.default_timer()
 
 print('Time: ', stop - start)
-
-
-
 
