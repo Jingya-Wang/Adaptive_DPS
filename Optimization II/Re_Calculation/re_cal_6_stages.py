@@ -79,8 +79,8 @@ n_vars = n_rbf * 3
 
 ## parameters II
 V_0 = 22656.5 # loss due to flood prior to t=0
-alpha = 0.0574 
-p_0 = 0.00110  # 
+alpha = 0.0574
+p_0 = 0.00110  #
 h_0 = (1/alpha)*(np.log(1/p_0)) # initial height of dike prior to t=0
 gamma = 0.02  # parameter for calculating damage
 zeta = 0.002032  # parameter for calculating damage
@@ -144,7 +144,7 @@ def get_probs(time_stage, years, time_step, new_water_level, n_years, bin_matrix
             w_closed_form_weighted_1, wts_1 = Closed_form_linear_weighted(x_predict_weighted[j], lwr_years, lwr_water_level, M, tao)
             for m in range(M+1):
                 x_feature[m] = x_predict_weighted[j]**m
-            y_predict_weighted[j] = np.matmul(x_feature,w_closed_form_weighted_1) 
+            y_predict_weighted[j] = np.matmul(x_feature,w_closed_form_weighted_1)
         y_predict_weighted = y_predict_weighted.reshape(-1,1)
         w_closed_form_weighted, wts = Closed_form_linear_weighted(n_years, lwr_years, lwr_water_level, M, tao)
         for m in range(M+1):
@@ -158,7 +158,7 @@ def get_probs(time_stage, years, time_step, new_water_level, n_years, bin_matrix
 
             probs[l,i] = nd.cdf(bin_matrix[l][1]) - nd.cdf(bin_matrix[l][0])
 
-    print(probs)    
+    print(probs)
 
     return probs
     
@@ -171,7 +171,7 @@ def pickup_strategy(strategy_1, strategy_2, strategy_3, probs, beliefs_space, ti
         strategy_name = 's1'
     else:
         for i in range(n_beliefs):
-            distances[i] = sum([abs(j-k) for j,k in zip(probs,beliefs_space[i,:])]) 
+            distances[i] = sum([abs(j-k) for j,k in zip(probs,beliefs_space[i,:])])
 
         ind = int(np.where(distances == min(distances))[0]) + 1
 
@@ -197,7 +197,7 @@ def calc_heightening(t, prev_h, water_level, n, year_offset, x, r, w, h_0):
     ####################################
     ## fit the simple linear regression based on
     ## past n-year water level data. The coefficients
-    ## are used as state variables to describe states## 
+    ## are used as state variables to describe states##
     ####################################
     
     def state_variables(past_n_year_data, n):
@@ -220,8 +220,8 @@ def calc_heightening(t, prev_h, water_level, n, year_offset, x, r, w, h_0):
     mean_slr_rate, srss = state_variables(obs,n)
 
     ####################################
-    ## calculate the freeboard height and 
-    ## buffer height for time t with given DPS decision variables## 
+    ## calculate the freeboard height and
+    ## buffer height for time t with given DPS decision variables##
     ####################################
     FH_t = 0
     BH_t = 0
@@ -237,7 +237,7 @@ def calc_heightening(t, prev_h, water_level, n, year_offset, x, r, w, h_0):
         BH_t = 0
         
     ####################################
-    ## calculate dike heightenings## 
+    ## calculate dike heightenings##
     ####################################
     test_height = prev_h - BH_t
     u_t = 0
@@ -249,12 +249,12 @@ def calc_heightening(t, prev_h, water_level, n, year_offset, x, r, w, h_0):
 
 
 ####################################
-## calculate expected loss and investment 
+## calculate expected loss and investment
 ## at time t
 ####################################
 def calc_inv_loss(t, prev_h, u_t, water_level, year_offset, V_0, gamma, zeta, h_0, kappa, upsilon, lam):
     
-    flood_rel = 0    
+    flood_rel = 0
     current_h = prev_h + u_t
 
     # expected loss
@@ -319,35 +319,38 @@ def calc_model(n_years, h_0, water_level, n, year_offset, x, r, w, V_0,         
     return total_inv, total_s, flood_rel
 
 
-# In[11]:
-
 
 def selections(time_stage, years, time_step, new_water_level, n_years, bin_matrix):
     probs = get_probs(time_stage, years, time_step, new_water_level, n_years, bin_matrix)
+    print(probs)
     #the decision for first time stage is just the combination 1
     timestage1, timestage1_name = pickup_strategy(strategy_1, strategy_2, strategy_3, probs[:,0],beliefs_space, 0)
     #the decision for second time stage is based on the first prediction,
     timestage2, timestage2_name = pickup_strategy(strategy_1, strategy_2, strategy_3, probs[:,0], beliefs_space, 1)
     #the decicion for third time stage is based on the second prediction (the third prediction actually doesn't matter)
     timestage3, timestage3_name = pickup_strategy(strategy_1, strategy_2, strategy_3, probs[:,1], beliefs_space, 2)
-    return timestage1, timestage2, timestage3, timestage1_name, timestage2_name, timestage3_name
+    timestage4, timestage4_name = pickup_strategy(strategy_1, strategy_2, strategy_3, probs[:,2], beliefs_space, 3)
+    timestage5, timestage5_name = pickup_strategy(strategy_1, strategy_2, strategy_3, probs[:,3], beliefs_space, 4)
+    timestage6, timestage6_name = pickup_strategy(strategy_1, strategy_2, strategy_3, probs[:,4], beliefs_space, 5)
+    return timestage1, timestage2, timestage3, timestage4, timestage5, timestage6,\
+timestage1_name, timestage2_name, timestage3_name, timestage4_name, timestage5_name, timestage6_name
+
+# the same as in 3_stage case; so, this has been done
+#mappings_name = np.zeros((len(strategy_1) * len(strategy_2) * len(strategy_3), n_vars * n_beliefs))
+#c = 0
+#for i in range(len(strategy_1)):
+#    for j in range(len(strategy_2)):
+#        for k in range(len(strategy_3)):
+#            mappings_name[c,:] = np.concatenate(((strategy_1[i],strategy_2[j], strategy_3[k])))
+#            c = c + 1
+#
+#np.savetxt('mappings_3_stages.csv',mappings_name, delimiter =",", fmt = '% s')
 
 
-mappings_name = np.zeros((len(strategy_1) * len(strategy_2) * len(strategy_3), n_vars * n_beliefs))
-c = 0
-for i in range(len(strategy_1)):
-    for j in range(len(strategy_2)):
-        for k in range(len(strategy_3)):
-            mappings_name[c,:] = np.concatenate(((strategy_1[i],strategy_2[j], strategy_3[k])))
-            c = c + 1
-
-np.savetxt('mappings_3_stages.csv',mappings_name, delimiter =",", fmt = '% s')
-
-
-def total_inv_s(timestage1, timestage2, timestage3, one_water_level):
+def total_inv_s(timestage1, timestage2, timestage3, timestage4, timestage5, timestage6, one_water_level):
     inv = np.zeros(n_years)
     s = np.zeros(n_years)
-    for t in range(0,100):
+    for t in range(0,50):
         rbf_vars = timestage1
         x = rbf_vars[0::3]
         r = rbf_vars[1::3]
@@ -357,7 +360,7 @@ def total_inv_s(timestage1, timestage2, timestage3, one_water_level):
         u = calc_heightening(t, prev_h, one_water_level, n, year_offset, x, r, w, h_0)
         inv[t], s[t], current_h, flood_rel = calc_inv_loss(t, prev_h, u, one_water_level, year_offset, V_0, gamma, zeta, h_0, kappa, upsilon, lam)
         prev_h = current_h
-    for t in range(100,200):
+    for t in range(50,100):
         rbf_vars = timestage2
         x = rbf_vars[0::3]
         r = rbf_vars[1::3]
@@ -365,9 +368,36 @@ def total_inv_s(timestage1, timestage2, timestage3, one_water_level):
         u = calc_heightening(t, prev_h, one_water_level, n, year_offset, x, r, w, h_0)
         inv[t], s[t], current_h, flood_rel = calc_inv_loss(t, prev_h, u, one_water_level, year_offset, V_0, gamma, zeta, h_0, kappa, upsilon, lam)
         #current_h = prev_h + u[count,t]
-        prev_h = current_h      
-    for t in range(200,300):
+        prev_h = current_h
+    for t in range(100,150):
         rbf_vars = timestage3
+        x = rbf_vars[0::3]
+        r = rbf_vars[1::3]
+        w = rbf_vars[2::3]
+        u = calc_heightening(t, prev_h, one_water_level, n, year_offset, x, r, w, h_0)
+        inv[t], s[t], current_h, flood_rel = calc_inv_loss(t, prev_h, u, one_water_level, year_offset, V_0, gamma, zeta, h_0, kappa, upsilon, lam)
+        #current_h = prev_h + u[count,t]
+        prev_h = current_h
+    for t in range(150,200):
+        rbf_vars = timestage4
+        x = rbf_vars[0::3]
+        r = rbf_vars[1::3]
+        w = rbf_vars[2::3]
+        u = calc_heightening(t, prev_h, one_water_level, n, year_offset, x, r, w, h_0)
+        inv[t], s[t], current_h, flood_rel = calc_inv_loss(t, prev_h, u, one_water_level, year_offset, V_0, gamma, zeta, h_0, kappa, upsilon, lam)
+        #current_h = prev_h + u[count,t]
+        prev_h = current_h
+    for t in range(200,250):
+        rbf_vars = timestage5
+        x = rbf_vars[0::3]
+        r = rbf_vars[1::3]
+        w = rbf_vars[2::3]
+        u = calc_heightening(t, prev_h, one_water_level, n, year_offset, x, r, w, h_0)
+        inv[t], s[t], current_h, flood_rel = calc_inv_loss(t, prev_h, u, one_water_level, year_offset, V_0, gamma, zeta, h_0, kappa, upsilon, lam)
+        #current_h = prev_h + u[count,t]
+        prev_h = current_h
+    for t in range(250,300):
+        rbf_vars = timestage6
         x = rbf_vars[0::3]
         r = rbf_vars[1::3]
         w = rbf_vars[2::3]
@@ -392,7 +422,7 @@ def find_set_inds(mappings, mapping_name, strategy_1, strategy_2, strategy_3):
  return ind
 
 
-mapping_space = np.zeros((len(strategy_1) * len(strategy_2) * len(strategy_3), len(water_level) * n_obj))  
+mapping_space = np.zeros((len(strategy_1) * len(strategy_2) * len(strategy_3), len(water_level) * n_obj))
 mappings = []
 for i in range(len(strategy_1)):
  S1 = 'S1'
@@ -407,103 +437,147 @@ df = pd.DataFrame(mappings)
 
 
 
-def mapping(sow, one_water_level,timestage1_name,timestage2_name,timestage3_name,timestage1, timestage2, timestage3):
- print(timestage1_name, timestage2_name, timestage3_name)
- ss = {timestage1_name, timestage2_name, timestage3_name}
- ss = np.array(np.sort(list(ss)))
+def mapping(sow, one_water_level,timestage1_name,timestage2_name,timestage3_name, timestage4_name,timestage5_name,timestage6_name,\
+            timestage1, timestage2, timestage3, timestage4, timestage5,timestage6):
+    print(timestage1_name, timestage2_name, timestage3_name, timestage4_name, timestage5_name, timestage6_name)
+    ss = {timestage1_name, timestage2_name, timestage3_name, timestage4_name, timestage5_name, timestage6_name}
+    ss = np.array(np.sort(list(ss)))
+    print(ss)
+    if len(ss) == 3:
+    # ABC
+        for i in range(len(strategy_1)):
+            for j in range(len(strategy_2)):
+                for k in range(len(strategy_3)):
+                    ind_1 = i
+                    if timestage2_name == 'strategy_1':
+                        ind_2 = i
+                    elif timestage2_name == 'strategy_2':
+                        ind_2 = j
+                    else:
+                        ind_2 = k
+                    if timestage3_name == 'strategy_1':
+                        ind_3 = i
+                    elif timestage3_name == 'strategy_2':
+                        ind_3 = j
+                    else:
+                        ind_3 = k
+                    if timestage4_name == 'strategy_1':
+                        ind_4 = i
+                    elif timestage4_name == 'strategy_2':
+                        ind_4 = j
+                    else:
+                        ind_4 = k
+                    if timestage5_name == 'strategy_1':
+                        ind_5 = i
+                    elif timestage5_name == 'strategy_2':
+                        ind_5 = j
+                    else:
+                        ind_5 = k
+                    if timestage6_name == 'strategy_1':
+                        ind_6 = i
+                    elif timestage6_name == 'strategy_2':
+                        ind_6 = j
+                    else:
+                        ind_6 = k
+                    
+                    total_inv, total_s = total_inv_s(timestage1[ind_1,:], timestage2[ind_2,:], timestage3[ind_3,:],\
+                                                    timestage4[ind_4,:], timestage5[ind_5,:], timestage6[ind_6,:], one_water_level)
 
- if len(ss) == 3:
- # ABC   
-     for i in range(len(strategy_1)):
-         for j in range(len(strategy_2)):
-             for k in range(len(strategy_3)):
-                 ind_1 = i
-                 if timestage2_name == 's1':
-                     ind_2 = i
-                 elif timestage2_name == 's2':
-                     ind_2 = j
-                 else:
-                     ind_2 = k
-                 if timestage3_name == 's1':
-                     ind_3 = i
-                 elif timestage3_name == 's2':
-                     ind_3 = j
-                 else:
-                     ind_3 = k
+                    mapping_name = 'S_1' + '_' + str(i+1) + ',' + 'S_2' + '_' + str(j+1) + ',' + 'S_3' + '_' + str(k+1)
 
-                 
-                 total_inv, total_s = total_inv_s(timestage1[ind_1,:], timestage2[ind_2,:], timestage3[ind_3,:],one_water_level)
+                    ind = np.where(mappings_array == mapping_name)
 
-                 mapping_name = 'S1' + '_' + str(i+1) + 'S2' + '_' + str(j+1) + 'S3' + '_' + str(k+1)
+                    mapping_space[ind, sow * n_obj] = total_inv
+                    mapping_space[ind, sow * n_obj + 1] = total_s
+    
+    if len(ss) == 2 and ss[1] == 'strategy_3':
+        # AC
+        for i in range(len(strategy_1)):
+            for j in range(len(strategy_3)):
+                ind_1 = i
+                if timestage2_name == 'strategy_1':
+                    ind_2 = i
+                else:
+                    ind_2 = j
+                if timestage3_name == 'strategy_1':
+                    ind_3 = i
+                else:
+                    ind_3 = j
+                if timestage4_name == 'strategy_1':
+                    ind_4 = i
+                else:
+                    ind_4 = j
+                if timestage5_name == 'strategy_1':
+                    ind_5 = i
+                else:
+                    ind_5 = j
+                if timestage6_name == 'strategy_1':
+                    ind_6 = i
+                else:
+                    ind_6 = j
 
-                 ind = np.where(mappings_array == mapping_name)
+                total_inv, total_s = total_inv_s(timestage1[ind_1,:], timestage2[ind_2,:], timestage3[ind_3,:],\
+                                                        timestage4[ind_4,:], timestage5[ind_5,:], timestage6[ind_6,:], one_water_level)
 
-                 mapping_space[ind, sow * n_obj] = total_inv
-                 mapping_space[ind, sow * n_obj + 1] = total_s
- 
- if len(ss) == 2 and ss[1] == 's3':
-     # AC
-     for i in range(len(strategy_1)):
-         for j in range(len(strategy_3)):
-             ind_1 = i
-             if timestage2_name == 's1':
-                 ind_2 = i
-             else:
-                 ind_2 = j
-             if timestage3_name == 's1':
-                 ind_3 = i
-             else:
-                 ind_3 = j
+                mapping_name = 'S_1' + '_' + str(i+1) + ',' + 'S_3' + '_' + str(j+1)
 
+                ind = find_set_inds(mappings_array, mapping_name, strategy_1, strategy_2, strategy_3)
 
-             total_inv, total_s = total_inv_s(timestage1[ind_1,:], timestage2[ind_2,:], timestage3[ind_3,:],one_water_level)
+                for m in range(len(ind)):
+                    mapping_space[ind[m], sow * n_obj] = total_inv
+                    mapping_space[ind[m], sow * n_obj + 1] = total_s
+    
+    if len(ss) == 2 and ss[1] == 'strategy_2':
+        # AB
+        for i in range(len(strategy_1)):
+            for j in range(len(strategy_2)):
+                ind_1 = i
+                if timestage2_name == 'strategy_1':
+                    ind_2 = i
+                else:
+                    ind_2 = j
+                if timestage3_name == 'strategy_1':
+                    ind_3 = i
+                else:
+                    ind_3 = j
+                if timestage4_name == 'strategy_1':
+                    ind_4 = i
+                else:
+                    ind_4 = j
+                if timestage5_name == 'strategy_1':
+                    ind_5 = i
+                else:
+                    ind_5 = j
+                if timestage6_name == 'strategy_1':
+                    ind_6 = i
+                else:
+                    ind_6 = j
+                    
+                   
+                total_inv, total_s = total_inv_s(timestage1[ind_1,:], timestage2[ind_2,:], timestage3[ind_3,:],\
+                                                        timestage4[ind_4,:], timestage5[ind_5,:], timestage6[ind_6,:], one_water_level)
 
-             mapping_name = 'S1' + '_' + str(i+1) + 'S3' + '_' + str(j+1)
+                mapping_name = 'S_1' + '_' + str(i+1) + ',' + 'S_2' + '_' + str(j+1)
 
-             ind = find_set_inds(mappings_array, mapping_name, strategy_1, strategy_2, strategy_3)
-
-             for m in range(len(ind)):
-                 mapping_space[ind[m], sow * n_obj] = total_inv
-                 mapping_space[ind[m], sow * n_obj + 1] = total_s
- 
- if len(ss) == 2 and ss[1] == 's2':
-     # AB
-     for i in range(len(strategy_1)):
-         for j in range(len(strategy_2)):
-             ind_1 = i
-             if timestage2_name == 's1':
-                 ind_2 = i
-             else:
-                 ind_2 = j
-             if timestage3_name == 's1':
-                 ind_3 = i
-             else:
-                 ind_3 = j
-
-                 
-             total_inv, total_s = total_inv_s(timestage1[ind_1,:], timestage2[ind_2,:], timestage3[ind_3,:],one_water_level)
-
-             mapping_name = 'S1' + '_' + str(i+1) + 'S2' + '_' + str(j+1)
-
-             ind = find_set_inds(mappings_array, mapping_name, strategy_1, strategy_2, strategy_3)
+                ind = find_set_inds(mappings_array, mapping_name, strategy_1, strategy_2, strategy_3)
   
-             for m in range(len(ind)):
-                 mapping_space[ind[m], sow * n_obj] = total_inv
-                 mapping_space[ind[m], sow * n_obj + 1] = total_s  
- if len(ss) == 0:
-     # A
+                for m in range(len(ind)):
+                    mapping_space[ind[m], sow * n_obj] = total_inv
+                    mapping_space[ind[m], sow * n_obj + 1] = total_s
+    if len(ss) == 0:
+        # A
 
-     for i in range(len(strategy_1)):
-         ind_1 = ind_2 = ind_3 = i
-         total_inv, total_s = total_inv_s(timestage1[ind_1,:], timestage2[ind_2,:], timestage3[ind_3,:],one_water_level)
-         mapping_name = 'S1' + '_' + str(i+1)
-         ind = find_set_inds(mappings_array, mapping_name, strategy_1, strategy_2, strategy_3)
-         for m in range(len(ind)):
-             mapping_space[ind[m], sow * n_obj] = total_inv
-             mapping_space[ind[m], sow * n_obj + 1] = total_s 
+        for i in range(len(strategy_1)):
+            ind_1 = ind_2 = ind_3 = ind_4 = ind_5 = ind_6 = i
+            total_inv, total_s = total_inv_s(timestage1[ind_1,:], timestage2[ind_2,:], timestage3[ind_3,:],\
+                                                        timestage4[ind_4,:], timestage5[ind_5,:], timestage6[ind_6,:], one_water_level)
+            mapping_name = 'S_1' + '_' + str(i+1)
+            ind = find_set_inds(mappings_array, mapping_name, strategy_1, strategy_2, strategy_3)
+            for m in range(len(ind)):
+                mapping_space[ind[m], sow * n_obj] = total_inv
+                mapping_space[ind[m], sow * n_obj + 1] = total_s
 
- return mapping_space
-
+    return mapping_space
 
 for i in range(len(water_level)):
     print(i)
@@ -520,7 +594,7 @@ final_s = np.sum(mapping_space[:,s_ind], axis = 1)/len(water_level)
                            
 invAs = np.array((final_inv, final_s))
 invAs = invAs.T
-np.savetxt('new_re_cal_3_stages.csv',  invAs, delimiter =", ",  fmt ='% s')
+np.savetxt('new_re_cal_6_stages.csv',  invAs, delimiter =", ",  fmt ='% s')
 
 stop = timeit.default_timer()
 
@@ -533,7 +607,7 @@ final_inv_low = np.sum(mapping_space[:,inv_ind_low],axis = 1)/33
 final_s_low = np.sum(mapping_space[:,s_ind_low], axis = 1)/33
 invAs = np.array((final_inv_low, final_s_low))
 invAs = invAs.T
-np.savetxt('low_new_3_stages.csv',  invAs, delimiter =", ",  fmt ='% s')
+np.savetxt('low_new_6_stages.csv',  invAs, delimiter =", ",  fmt ='% s')
 
 # medium water level
 inv_ind_medium = np.arange(33*2,66*2, 2)
@@ -542,7 +616,7 @@ final_inv_medium = np.sum(mapping_space[:,inv_ind_medium],axis = 1)/33
 final_s_medium = np.sum(mapping_space[:,s_ind_medium], axis = 1)/33
 invAs = np.array((final_inv_medium, final_s_medium))
 invAs = invAs.T
-np.savetxt('medium_new_3_stages.csv',  invAs, delimiter =", ",  fmt ='% s')
+np.savetxt('medium_new_6_stages.csv',  invAs, delimiter =", ",  fmt ='% s')
 
 # high water level
 inv_ind_high = np.arange(66*2,100*2, 2)
@@ -551,4 +625,4 @@ final_inv_high = np.sum(mapping_space[:,inv_ind_high],axis = 1)/34
 final_s_high = np.sum(mapping_space[:,s_ind_high], axis = 1)/34
 invAs = np.array((final_inv_high, final_s_high))
 invAs = invAs.T
-np.savetxt('high_new_3_stages.csv',  invAs, delimiter =", ",  fmt ='% s')
+np.savetxt('high_new_6_stages.csv',  invAs, delimiter =", ",  fmt ='% s')
