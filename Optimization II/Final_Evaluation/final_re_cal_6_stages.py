@@ -46,34 +46,34 @@ w_3 = 0.7
 
 # read meta-policies: tagged with seeds; running 10 seeds here
 
-mp_1 = pd.read_csv('mp_pred_3_stages_0.csv', header = None)
+mp_1 = pd.read_csv('mp_pred_6_stages_0.csv', header = None)
 mp_1 = mp_1.to_numpy()
 
-mp_2 = pd.read_csv('mp_pred_3_stages_19.csv', header = None)
+mp_2 = pd.read_csv('mp_pred_6_stages_19.csv', header = None)
 mp_2 = mp_2.to_numpy()
 
-mp_3 = pd.read_csv('mp_pred_3_stages_29.csv', header = None)
+mp_3 = pd.read_csv('mp_pred_6_stages_29.csv', header = None)
 mp_3 = mp_3.to_numpy()
 
-mp_4 = pd.read_csv('mp_pred_3_stages_39.csv', header = None)
+mp_4 = pd.read_csv('mp_pred_6_stages_39.csv', header = None)
 mp_4 = mp_4.to_numpy()
 
-mp_5 = pd.read_csv('mp_pred_3_stages_42.csv', header = None)
+mp_5 = pd.read_csv('mp_pred_6_stages_42.csv', header = None)
 mp_5 = mp_5.to_numpy()
 
-mp_6 = pd.read_csv('mp_pred_3_stages_49.csv', header = None)
+mp_6 = pd.read_csv('mp_pred_6_stages_49.csv', header = None)
 mp_6 = mp_6.to_numpy()
 
-mp_7 = pd.read_csv('mp_pred_3_stages_59.csv', header = None)
+mp_7 = pd.read_csv('mp_pred_6_stages_59.csv', header = None)
 mp_7 = mp_7.to_numpy()
 
-mp_8 = pd.read_csv('mp_pred_3_stages_69.csv', header = None)
+mp_8 = pd.read_csv('mp_pred_6_stages_69.csv', header = None)
 mp_8 = mp_8.to_numpy()
 
-mp_9 = pd.read_csv('mp_pred_3_stages_119.csv', header = None)
+mp_9 = pd.read_csv('mp_pred_6_stages_119.csv', header = None)
 mp_9 = mp_9.to_numpy()
 
-mp_10 = pd.read_csv('mp_pred_3_stages_159.csv', header = None)
+mp_10 = pd.read_csv('mp_pred_6_stages_159.csv', header = None)
 mp_10 = mp_10.to_numpy()
 
 mp_fake = np.concatenate((mp_1, mp_2, mp_3, mp_4, mp_5, mp_6, mp_7, mp_8, mp_9, mp_10),axis = 0)
@@ -106,8 +106,8 @@ n_vars = n_rbf * 3
 
 ## parameters II
 V_0 = 22656.5 # loss due to flood prior to t=0
-alpha = 0.0574 
-p_0 = 0.00110  # 
+alpha = 0.0574
+p_0 = 0.00110  #
 h_0 = (1/alpha)*(np.log(1/p_0)) # initial height of dike prior to t=0
 gamma = 0.02  # parameter for calculating damage
 zeta = 0.002032  # parameter for calculating damage
@@ -353,19 +353,22 @@ def selections(time_stage, years, time_step, new_water_level, n_years, bin_matri
     timestage2_name = pickup_strategy(probs[:,0], beliefs_space, 1)
     #the decicion for third time stage is based on the second prediction (the third prediction actually doesn't matter)
     timestage3_name = pickup_strategy(probs[:,1], beliefs_space, 2)
-    return timestage1_name, timestage2_name, timestage3_name
+    timestage4_name = pickup_strategy(probs[:,2], beliefs_space, 3)
+    timestage5_name = pickup_strategy(probs[:,3], beliefs_space, 4)
+    timestage6_name = pickup_strategy(probs[:,4], beliefs_space, 5)
+    return timestage1_name, timestage2_name, timestage3_name, timestage4_name, timestage5_name, timestage6_name
 
 
-mp_mapping_space = np.zeros((len(mp),len(water_level) * n_obj))  
+mp_mapping_space = np.zeros((len(mp),len(water_level) * n_obj))
 
 mp_mappings = np.zeros((len(mp), n_vars * n_beliefs))
 
 
 
-def total_inv_s(timestage1, timestage2, timestage3, one_water_level):
+def total_inv_s(timestage1, timestage2, timestage3, timestage4, timestage5, timestage6, one_water_level):
     inv = np.zeros(n_years)
     s = np.zeros(n_years)
-    for t in range(0,100):
+    for t in range(0,50):
         rbf_vars = timestage1
         x = rbf_vars[0::3]
         r = rbf_vars[1::3]
@@ -375,7 +378,7 @@ def total_inv_s(timestage1, timestage2, timestage3, one_water_level):
         u = calc_heightening(t, prev_h, one_water_level, n, year_offset, x, r, w, h_0)
         inv[t], s[t], current_h, flood_rel = calc_inv_loss(t, prev_h, u, one_water_level, year_offset, V_0, gamma, zeta, h_0, kappa, upsilon, lam)
         prev_h = current_h
-    for t in range(100,200):
+    for t in range(50,100):
         rbf_vars = timestage2
         x = rbf_vars[0::3]
         r = rbf_vars[1::3]
@@ -383,9 +386,36 @@ def total_inv_s(timestage1, timestage2, timestage3, one_water_level):
         u = calc_heightening(t, prev_h, one_water_level, n, year_offset, x, r, w, h_0)
         inv[t], s[t], current_h, flood_rel = calc_inv_loss(t, prev_h, u, one_water_level, year_offset, V_0, gamma, zeta, h_0, kappa, upsilon, lam)
         #current_h = prev_h + u[count,t]
-        prev_h = current_h      
-    for t in range(200,300):
+        prev_h = current_h
+    for t in range(100,150):
         rbf_vars = timestage3
+        x = rbf_vars[0::3]
+        r = rbf_vars[1::3]
+        w = rbf_vars[2::3]
+        u = calc_heightening(t, prev_h, one_water_level, n, year_offset, x, r, w, h_0)
+        inv[t], s[t], current_h, flood_rel = calc_inv_loss(t, prev_h, u, one_water_level, year_offset, V_0, gamma, zeta, h_0, kappa, upsilon, lam)
+        #current_h = prev_h + u[count,t]
+        prev_h = current_h
+    for t in range(150,200):
+        rbf_vars = timestage4
+        x = rbf_vars[0::3]
+        r = rbf_vars[1::3]
+        w = rbf_vars[2::3]
+        u = calc_heightening(t, prev_h, one_water_level, n, year_offset, x, r, w, h_0)
+        inv[t], s[t], current_h, flood_rel = calc_inv_loss(t, prev_h, u, one_water_level, year_offset, V_0, gamma, zeta, h_0, kappa, upsilon, lam)
+        #current_h = prev_h + u[count,t]
+        prev_h = current_h
+    for t in range(200,250):
+        rbf_vars = timestage5
+        x = rbf_vars[0::3]
+        r = rbf_vars[1::3]
+        w = rbf_vars[2::3]
+        u = calc_heightening(t, prev_h, one_water_level, n, year_offset, x, r, w, h_0)
+        inv[t], s[t], current_h, flood_rel = calc_inv_loss(t, prev_h, u, one_water_level, year_offset, V_0, gamma, zeta, h_0, kappa, upsilon, lam)
+        #current_h = prev_h + u[count,t]
+        prev_h = current_h
+    for t in range(250,300):
+        rbf_vars = timestage6
         x = rbf_vars[0::3]
         r = rbf_vars[1::3]
         w = rbf_vars[2::3]
@@ -399,25 +429,30 @@ def total_inv_s(timestage1, timestage2, timestage3, one_water_level):
 
 
 
-def mapping(sow, one_water_level,timestage1_name,timestage2_name,timestage3_name):
- print(timestage1_name, timestage2_name, timestage3_name)
+def mapping(sow, one_water_level,timestage1_name,timestage2_name,timestage3_name, timestage4_name, timestage5_name, timestage6_name):
+    print(timestage1_name, timestage2_name, timestage3_name, timestage4_name, timestage5_name, timestage6_name)
   
- for i in range(len(mp)):
-     total_inv, total_s = total_inv_s(mp[i,0:12], mp[i,(timestage2_name-1)*12 : (timestage2_name-1)*12+12],                                      mp[i,(timestage3_name-1)*12 : (timestage3_name-1)*12+12],one_water_level)
+    for i in range(len(mp)):
+        total_inv, total_s = total_inv_s(mp[i,0:12], mp[i,(timestage2_name-1)*12 : (timestage2_name-1)*12+12],\
+                                         mp[i,(timestage3_name-1)*12 : (timestage3_name-1)*12+12], \
+                                         mp[i,(timestage4_name-1)*12 : (timestage4_name-1)*12+12], \
+                                         mp[i,(timestage5_name-1)*12 : (timestage5_name-1)*12+12], \
+                                         mp[i,(timestage6_name-1)*12 : (timestage6_name-1)*12+12], \
+                                         one_water_level)
 
-     mp_mapping_space[i, sow * n_obj] = total_inv
-     mp_mapping_space[i, sow * n_obj + 1] = total_s
+        mp_mapping_space[i, sow * n_obj] = total_inv
+        mp_mapping_space[i, sow * n_obj + 1] = total_s
 
 
- return mp_mapping_space
+    return mp_mapping_space
 
 
 
 for i in range(len(water_level)):
     one_water_level = water_level[i,:]
     new_water_level = one_water_level[n:]
-    timestage1_name, timestage2_name, timestage3_name = selections(time_stage, years, time_step, new_water_level, n_years, bin_matrix)
-    mp_mapping_space = mapping(i, one_water_level,timestage1_name,timestage2_name,timestage3_name)
+    timestage1_name, timestage2_name, timestage3_name, timestage4_name, timestage5_name, timestage6_name = selections(time_stage, years, time_step, new_water_level, n_years, bin_matrix)
+    mp_mapping_space = mapping(i, one_water_level,timestage1_name,timestage2_name,timestage3_name, timestage4_name, timestage5_name, timestage6_name)
 
 inv_ind = np.arange(0,len(water_level) * n_obj, 2)
 s_ind = np.arange(1,len(water_level) * n_obj, 2)
@@ -434,7 +469,7 @@ stop = timeit.default_timer()
 print('Time: ', stop - start)
 
 
-np.savetxt('final_3_stages.csv',  invAs, delimiter =", ",  fmt ='% s')
+np.savetxt('final_6_stages.csv',  invAs, delimiter =", ",  fmt ='% s')
 
 
 # low water level
@@ -445,7 +480,7 @@ final_s = np.sum(mp_mapping_space[:,s_ind], axis = 1)/33
 
 invAs = np.array((final_inv, final_s))
 invAs = invAs.T
-np.savetxt('low_final_3_stages.csv',  invAs, delimiter =", ",  fmt ='% s')
+np.savetxt('low_final_6_stages.csv',  invAs, delimiter =", ",  fmt ='% s')
 
 
 # medium water level
@@ -455,7 +490,7 @@ final_inv = np.sum(mp_mapping_space[:,inv_ind],axis = 1)/33
 final_s = np.sum(mp_mapping_space[:,s_ind], axis = 1)/33
 invAs = np.array((final_inv, final_s))
 invAs = invAs.T
-np.savetxt('medium_final_3_stages.csv',  invAs, delimiter =", ",  fmt ='% s')
+np.savetxt('medium_final_6_stages.csv',  invAs, delimiter =", ",  fmt ='% s')
 
 
 # high water level
@@ -465,7 +500,7 @@ final_inv = np.sum(mp_mapping_space[:,inv_ind],axis = 1)/34
 final_s = np.sum(mp_mapping_space[:,s_ind], axis = 1)/34
 invAs = np.array((final_inv, final_s))
 invAs = invAs.T
-np.savetxt('high_final_3_stages.csv',  invAs, delimiter =", ",  fmt ='% s')
+np.savetxt('high_final_6_stages.csv',  invAs, delimiter =", ",  fmt ='% s')
 
 
 
