@@ -506,7 +506,6 @@ def mapping(sow, one_water_level,timestage1_name,timestage2_name,timestage3_name
 
 
 for i in range(len(water_level)):
-    print(i)
     one_water_level = water_level[i,:]
     new_water_level = one_water_level[n:]
     timestage1, timestage2, timestage3, timestage1_name, timestage2_name, timestage3_name = selections(time_stage, years, time_step, new_water_level, n_years, bin_matrix)

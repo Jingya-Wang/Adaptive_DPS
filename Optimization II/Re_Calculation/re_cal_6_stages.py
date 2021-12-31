@@ -580,11 +580,12 @@ def mapping(sow, one_water_level,timestage1_name,timestage2_name,timestage3_name
     return mapping_space
 
 for i in range(len(water_level)):
-    print(i)
     one_water_level = water_level[i,:]
     new_water_level = one_water_level[n:]
-    timestage1, timestage2, timestage3, timestage1_name, timestage2_name, timestage3_name = selections(time_stage, years, time_step, new_water_level, n_years, bin_matrix)
-    mapping_space = mapping(i, one_water_level,timestage1_name,timestage2_name,timestage3_name,            timestage1, timestage2, timestage3)
+    timestage1, timestage2, timestage3, timestage4, timestage5, timestage6,\
+    timestage1_name, timestage2_name, timestage3_name, timestage4_name, timestage5_name, timestage6_name = selections(time_stage, years, time_step, new_water_level, n_years, bin_matrix)
+    mapping_space = mapping(i, one_water_level,timestage1_name,timestage2_name,timestage3_name, timestage4_name, timestage5_name, timestage6_name,\
+                            timestage1, timestage2, timestage3, timestage4, timestage5, timestage6)
 
 inv_ind = np.arange(0,len(water_level) * n_obj, 2)
 s_ind = np.arange(1,len(water_level) * n_obj, 2)
