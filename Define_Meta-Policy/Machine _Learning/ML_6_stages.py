@@ -17,12 +17,12 @@ from sklearn.pipeline import make_pipeline
 # Import the sample data
 
 # mappings: the combinations of strategies
-dd_x = 'mappings_3_stages.csv'
+dd_x = 'mappings_6_stages.csv'
 sample_x = pd.read_csv(dd_x, header = None)
 sample_x = sample_x.to_numpy()
 
 # the two objectives
-dd_y = 'new_re_cal_3_stages.csv'
+dd_y = 'new_re_cal_6_stages.csv'
 sample_y = pd.read_csv(dd_y, header = None)
 sample_y = sample_y.to_numpy()
 
@@ -140,13 +140,13 @@ mid_y = np.concatenate((pred_y1,pred_y2), axis = 1)
 y = mid_y[mid_y.min(axis=1)>=0,:]
 
 
-np.savetxt('pred_3_stages_' + str(seed) + '.csv',y, delimiter =",", fmt = '% s')
+np.savetxt('pred_6_stages_' + str(seed) + '.csv',y, delimiter =",", fmt = '% s')
 
 
 ###### Run pareto.py to sort solution before running following lines #####
 
 # read the solutions on Pareto frontier
-dd_pp = 'parsed_pred_3_stages_' + str(seed) + ".csv"
+dd_pp = 'parsed_pred_6_stages_' + str(seed) + ".csv"
 pp = pd.read_csv(dd_pp, header = None)
 pp = pp.to_numpy()
 l = len(pp)
@@ -162,7 +162,7 @@ for i in range(l):
     mp[i] = mappings[y1_loc]
     
 # save the mp with seed
-np.savetxt('mp_pred_3_stages_' + str(seed)+ '.csv', mp, delimiter =",", fmt = '% s')
+np.savetxt('mp_pred_6_stages_' + str(seed)+ '.csv', mp, delimiter =",", fmt = '% s')
 
 
 
