@@ -26,7 +26,7 @@ start = timeit.default_timer()
 #dd = '../DPS/DataCommonsArchive/ext_data/sow_a_b_c_tstar_cstar_loc_scale_shape_100k.txt'
 #coefs = np.loadtxt(dd, delimiter=" ", unpack=True)
 
-dd = '../data/sampled_water_level_6_2.csv'
+dd = '../data/sampled_water_level_10000.csv'
 water_level = pd.read_csv(dd, header = None)
 water_level = water_level.to_numpy()
 
